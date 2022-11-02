@@ -7,8 +7,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let resp = reqwest::get(url).await?.text().await?;
     let document = Html::parse_document(&resp);
     let selector = Selector::parse("div.iva-item-titleStep-pdebR h3").unwrap();
+    let mut book_titles: Vec<Vec<String>> = Vec::new();
     for element in document.select(&selector) {
-        println!("{:#?}", element.inner_html());
+        book_titles.push(
+            element
+                .inner_html()
+                .split(' ')
+                .map(String::from)
+                .filter(|x| !x.contains("Артбук"))
+                .collect(),
+        );
+    }
+    for tittle in book_titles {
+        println!("{:?}", tittle)
     }
     Ok(())
 }
