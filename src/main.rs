@@ -7,15 +7,23 @@ pub use book::Book;
 mod lot;
 pub use lot::Lot;
 
+struct Storage {
+    lots: Vec<Lot>,
+    books: Vec<Book>,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let url =
         String::from("https://www.avito.ru/all/knigi_i_zhurnaly/knigi-ASgBAgICAUTOAuoK?cd=1&q=%D0%B0%D1%80%D1%82%D0%B1%D1%83%D0%BA");
-    let mut lots = Vec::new();
+    let mut storage = Storage {
+        lots: Vec::new(),
+        books: Vec::new(),
+    };
     match page_parsing(url) {
-        Ok(n) => lots = n,
+        Ok(n) => storage.lots = n,
         Err(e) => println!("Ошибка с запросом: {}", e),
     }
-    for lot in &lots {
+    for lot in &storage.lots {
         println!("{:?}", lot.title)
     }
 
@@ -29,14 +37,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             count: 0,
         })
     })?;
-    let mut books: Vec<Book> = Vec::new();
     for book in book_iter {
-        books.push(book.unwrap());
+        storage.books.push(book.unwrap());
     }
 
-    ratio_lots_with_books(&mut lots, &mut books);
+    ratio_lots_with_books(&mut storage.lots, &mut storage.books);
 
-    for book in books {
+    for book in storage.books {
         println!("{:?}", book)
     }
 
