@@ -7,6 +7,9 @@ pub use book::Book;
 mod lot;
 pub use lot::Lot;
 
+mod db;
+pub use db::DB;
+
 struct Storage {
     lots: Vec<Lot>,
     books: Vec<Book>,
@@ -28,18 +31,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let path = "D:/DB/auctions.db";
-    let connection = Connection::open(path)?;
-    let mut stmt = connection.prepare("SELECT ISBN, Name FROM Book")?;
-    let book_iter = stmt.query_map([], |row| {
-        Ok(Book {
-            isbn: row.get(0)?,
-            title: row.get(1)?,
-            count: 0,
-        })
-    })?;
-    for book in book_iter {
-        storage.books.push(book.unwrap());
-    }
+    let db = DB {
+        connection: {
+            match Connection::open(path) {
+                Ok(connection) => connection,
+                Err(e) => panic!("Ошибка с подключением к БД: {}", e),
+            }
+        },
+    };
+    db.select_books(&mut storage.books);
+    // let mut stmt = connection.prepare("SELECT ISBN, Name FROM Book")?;
+    // let book_iter = stmt.query_map([], |row| {
+    //     Ok(Book {
+    //         isbn: row.get(0)?,
+    //         title: row.get(1)?,
+    //         count: 0,
+    //     })
+    // })?;
+    // for book in book_iter {
+    //     storage.books.push(book.unwrap());
+    // }
 
     ratio_lots_with_books(&mut storage.lots, &mut storage.books);
 
