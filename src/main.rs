@@ -76,14 +76,14 @@ fn ratio_lots_with_books(lots: &mut Vec<Lot>, books: &mut Vec<Book>) {
                     lot.count += 1;
                 }
             }
-            if book.title == "Искусство Battlefield 1" {
-                println!(
-                    "words: {:?}, lot title: {}, count: {}",
-                    &lot.get_keywords(),
-                    lot.title,
-                    lot.count
-                );
-            }
+            // if book.title == "Искусство Battlefield 1" {
+            //     println!(
+            //         "words: {:?}, lot title: {}, count: {}",
+            //         &lot.get_keywords(),
+            //         lot.title,
+            //         lot.count
+            //     );
+            // }
         });
 
         let sum = lots.iter().map(|lot| lot.count).sum::<i32>() as f32;
@@ -94,9 +94,9 @@ fn ratio_lots_with_books(lots: &mut Vec<Lot>, books: &mut Vec<Book>) {
             _ => 0.0,
         };
 
-        if book.title == "Искусство Battlefield 1" {
-            println!("mean: {}", mean);
-        }
+        // if book.title == "Искусство Battlefield 1" {
+        //     println!("mean: {}", mean);
+        // }
 
         if mean != 0.0 {
             lots.iter()
