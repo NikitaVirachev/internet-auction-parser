@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct Lot {
     pub title: String,
     pub count: i32,
@@ -6,13 +7,20 @@ pub struct Lot {
 impl Lot {
     pub fn get_keywords(&self) -> Vec<String> {
         self.title
-            .split(' ')
-            .map(String::from)
+            .split(|c| {
+                c == ':' || c == ' ' || c == '-' || c == '—' || c == '/' || c == '.' || c == ','
+            })
+            .map(|word| String::from(word).to_lowercase())
             .filter(|x| {
-                !x.to_lowercase().contains("артбук")
-                    && !x.to_lowercase().contains("мир")
-                    && !x.to_lowercase().contains("игр")
-                    && !x.to_lowercase().contains("искусство")
+                !(x.contains("артбук")
+                    || x.contains("мир")
+                    || x.contains("игр")
+                    || x.contains("искусство")
+                    || x.contains("artbook")
+                    || x.contains("of"))
+                    && x.len() > 0
+                    && x != "и"
+                    && x != "art"
             })
             .collect()
     }

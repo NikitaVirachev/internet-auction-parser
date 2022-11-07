@@ -26,9 +26,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(n) => storage.lots = n,
         Err(e) => panic!("Ошибка с запросом: {}", e),
     }
-    for lot in &storage.lots {
-        println!("{:?}", lot.title)
-    }
+    // for lot in &storage.lots {
+    //     println!("{:?}", lot.title)
+    // }
 
     let path = "D:/DB/auctions.db";
     let db = DB {
@@ -72,26 +72,36 @@ fn ratio_lots_with_books(lots: &mut Vec<Lot>, books: &mut Vec<Book>) {
     for book in books {
         lots.into_iter().for_each(|lot| {
             for word in &lot.get_keywords() {
-                if book.title.contains(word) {
+                if book.title.to_lowercase().contains(word) {
                     lot.count += 1;
                 }
             }
+            if book.title == "Искусство Battlefield 1" {
+                println!(
+                    "words: {:?}, lot title: {}, count: {}",
+                    &lot.get_keywords(),
+                    lot.title,
+                    lot.count
+                );
+            }
         });
 
-        let max = lots
-            .iter()
-            .reduce(|accum, item| {
-                if accum.count >= item.count {
-                    accum
-                } else {
-                    item
-                }
-            })
-            .unwrap()
-            .count;
+        let sum = lots.iter().map(|lot| lot.count).sum::<i32>() as f32;
+        let count = lots.iter().filter(|lot| lot.count > 0).count();
 
-        if max > 0 {
-            book.count += 1
+        let mean = match count {
+            positive if positive > 0 => sum / count as f32,
+            _ => 0.0,
+        };
+
+        if book.title == "Искусство Battlefield 1" {
+            println!("mean: {}", mean);
+        }
+
+        if mean != 0.0 {
+            lots.iter()
+                .filter(|lot| lot.count as f32 >= mean)
+                .for_each(|_| book.count += 1);
         }
 
         lots.iter_mut().for_each(|lot| lot.count = 0);
