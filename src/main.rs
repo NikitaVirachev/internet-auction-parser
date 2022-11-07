@@ -43,17 +43,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(books) => storage.books = books,
         Err(e) => panic!("Ошибка в запросе к БД: {}", e),
     }
-    // let mut stmt = connection.prepare("SELECT ISBN, Name FROM Book")?;
-    // let book_iter = stmt.query_map([], |row| {
-    //     Ok(Book {
-    //         isbn: row.get(0)?,
-    //         title: row.get(1)?,
-    //         count: 0,
-    //     })
-    // })?;
-    // for book in book_iter {
-    //     storage.books.push(book.unwrap());
-    // }
 
     ratio_lots_with_books(&mut storage.lots, &mut storage.books);
 
