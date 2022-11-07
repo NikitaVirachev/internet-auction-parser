@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     match page_parsing(url) {
         Ok(n) => storage.lots = n,
-        Err(e) => println!("Ошибка с запросом: {}", e),
+        Err(e) => panic!("Ошибка с запросом: {}", e),
     }
     for lot in &storage.lots {
         println!("{:?}", lot.title)
