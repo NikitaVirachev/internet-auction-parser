@@ -39,7 +39,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         },
     };
-    db.select_books(&mut storage.books);
+    match db.select_books() {
+        Ok(books) => storage.books = books,
+        Err(e) => panic!("Ошибка в запросе к БД: {}", e),
+    }
     // let mut stmt = connection.prepare("SELECT ISBN, Name FROM Book")?;
     // let book_iter = stmt.query_map([], |row| {
     //     Ok(Book {
