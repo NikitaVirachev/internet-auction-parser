@@ -1,3 +1,4 @@
+use reqwest::Client;
 use rusqlite::Connection;
 use scraper::{Html, Selector};
 
@@ -16,16 +17,21 @@ struct Storage {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let url =
-        String::from("https://www.avito.ru/all/knigi_i_zhurnaly/knigi-ASgBAgICAUTOAuoK?cd=1&q=%D0%B0%D1%80%D1%82%D0%B1%D1%83%D0%BA");
+    let client = reqwest::Client::new();
     let mut storage = Storage {
         lots: Vec::new(),
         books: Vec::new(),
     };
-    match page_parsing(url) {
-        Ok(n) => storage.lots = n,
+
+    let number_of_pages;
+    let url =
+        String::from("https://www.avito.ru/all/knigi_i_zhurnaly/knigi-ASgBAgICAUTOAuoK?cd=1&q=%D0%B0%D1%80%D1%82%D0%B1%D1%83%D0%BA");
+    match get_number_of_pages(&url, &client) {
+        Ok(number) => number_of_pages = number,
         Err(e) => panic!("Ошибка с запросом: {}", e),
     }
+
+    parsing_all_pages(&number_of_pages, &client, &mut storage);
     // for lot in &storage.lots {
     //     println!("{:?}", lot.title)
     // }
@@ -46,26 +52,67 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     ratio_lots_with_books(&mut storage.lots, &mut storage.books);
 
-    for book in storage.books {
-        println!("{:?}", book)
-    }
+    // for book in storage.books {
+    //     println!("{:?}", book)
+    // }
 
     Ok(())
 }
 
+fn parsing_all_pages(number_of_pages: &i32, client: &Client, storage: &mut Storage) {
+    for i in 1..number_of_pages + 1 {
+        let mut url = String::from(
+            "https://www.avito.ru/all/knigi_i_zhurnaly/knigi-ASgBAgICAUTOAuoK?cd=1&p=",
+        );
+        url += &i.to_string();
+        url += "&q=%D0%B0%D1%80%D1%82%D0%B1%D1%83%D0%BA";
+        match page_parsing(&url, &client) {
+            Ok(n) => {
+                println!("Запрос №{} выполнен", i);
+                storage.lots.extend(n)
+            }
+            Err(e) => {
+                panic!("Ошибка с запросом: {}", e);
+                // page_parsing(&url);
+            }
+        }
+    }
+}
+
 #[tokio::main]
-async fn page_parsing(url: String) -> Result<Vec<Lot>, Box<dyn std::error::Error>> {
+async fn page_parsing(
+    url: &String,
+    client: &Client,
+) -> Result<Vec<Lot>, Box<dyn std::error::Error>> {
     let mut lots: Vec<Lot> = Vec::new();
-    let resp = reqwest::get(url).await?.text().await?;
+    let resp = client.get(url).send().await?.text().await?;
     let document = Html::parse_document(&resp);
-    let selector = Selector::parse("div.iva-item-titleStep-pdebR h3").unwrap();
-    for element in document.select(&selector) {
+
+    let selector_lots = Selector::parse("div.iva-item-titleStep-pdebR h3").unwrap();
+    for element in document.select(&selector_lots) {
         lots.push(Lot {
             title: element.inner_html(),
             count: 0,
         });
     }
     return Ok(lots);
+}
+
+#[tokio::main]
+async fn get_number_of_pages(
+    url: &String,
+    client: &Client,
+) -> Result<i32, Box<dyn std::error::Error>> {
+    let resp = client.get(url).send().await?.text().await?;
+    let document = Html::parse_document(&resp);
+
+    let selector_pages = Selector::parse("span.pagination-item-JJq_j").unwrap();
+    let mut pages: Vec<String> = Vec::new();
+    for element in document.select(&selector_pages) {
+        pages.push(element.inner_html());
+    }
+    let number_of_pages = pages[pages.len() - 2].parse().unwrap();
+    return Ok(number_of_pages);
 }
 
 fn ratio_lots_with_books(lots: &mut Vec<Lot>, books: &mut Vec<Book>) {
