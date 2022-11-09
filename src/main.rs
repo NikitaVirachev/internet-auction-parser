@@ -1,3 +1,4 @@
+use chrono::{NaiveDate, UTC};
 use reqwest::Client;
 use rusqlite::Connection;
 use scraper::{Html, Selector};
@@ -22,20 +23,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         lots: Vec::new(),
         books: Vec::new(),
     };
-
-    let number_of_pages;
-    let url =
-        String::from("https://www.avito.ru/all/knigi_i_zhurnaly/knigi-ASgBAgICAUTOAuoK?cd=1&q=%D0%B0%D1%80%D1%82%D0%B1%D1%83%D0%BA");
-    match get_number_of_pages(&url, &client) {
-        Ok(number) => number_of_pages = number,
-        Err(e) => panic!("Ошибка с запросом: {}", e),
-    }
-
-    parsing_all_pages(&number_of_pages, &client, &mut storage);
-    // for lot in &storage.lots {
-    //     println!("{:?}", lot.title)
-    // }
-
     let path = "D:/DB/auctions.db";
     let db = DB {
         connection: {
@@ -45,6 +32,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         },
     };
+
+    parsing_pages(
+        &count_number_of_pages_to_parse(&db, &client),
+        &client,
+        &mut storage,
+    );
+    // for lot in &storage.lots {
+    //     println!("{:?}", lot)
+    // }
+
+    match db.set_current_date(&String::from("artbook")) {
+        Ok(_) => (),
+        Err(e) => panic!("Ошибка в запросе к БД: {}", e),
+    }
+
     match db.select_books() {
         Ok(books) => storage.books = books,
         Err(e) => panic!("Ошибка в запросе к БД: {}", e),
@@ -59,7 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn parsing_all_pages(number_of_pages: &i32, client: &Client, storage: &mut Storage) {
+fn parsing_pages(number_of_pages: &i64, client: &Client, storage: &mut Storage) {
     for i in 1..number_of_pages + 1 {
         let mut url = String::from(
             "https://www.avito.ru/all/knigi_i_zhurnaly/knigi-ASgBAgICAUTOAuoK?cd=1&p=",
@@ -88,13 +90,42 @@ async fn page_parsing(
     let resp = client.get(url).send().await?.text().await?;
     let document = Html::parse_document(&resp);
 
-    let selector_lots = Selector::parse("div.iva-item-titleStep-pdebR h3").unwrap();
-    for element in document.select(&selector_lots) {
+    let selector_lot = Selector::parse("div.iva-item-content-rejJg").unwrap();
+    for element in document.select(&selector_lot) {
+        let selector_title = Selector::parse("div.iva-item-titleStep-pdebR h3").unwrap();
+        let selector_anchor = Selector::parse("a.link-link-MbQDP").unwrap();
+        let title = element.select(&selector_title).next().unwrap().inner_html();
+        let anchor = element
+            .select(&selector_anchor)
+            .next()
+            .unwrap()
+            .value()
+            .attr("href")
+            .unwrap();
+        let mut url = "https://www.avito.ru".to_string();
+        url += anchor;
+        let id = element
+            .parent()
+            .unwrap()
+            .value()
+            .as_element()
+            .unwrap()
+            .attr("data-item-id")
+            .unwrap();
         lots.push(Lot {
-            title: element.inner_html(),
+            id: id.to_string(),
+            title: title,
+            url: url,
             count: 0,
         });
     }
+    // let selector_title = Selector::parse("div.iva-item-titleStep-pdebR h3").unwrap();
+    // for element in document.select(&selector_title) {
+    //     lots.push(Lot {
+    //         title: element.inner_html(),
+    //         count: 0,
+    //     });
+    // }
     return Ok(lots);
 }
 
@@ -102,7 +133,7 @@ async fn page_parsing(
 async fn get_number_of_pages(
     url: &String,
     client: &Client,
-) -> Result<i32, Box<dyn std::error::Error>> {
+) -> Result<i64, Box<dyn std::error::Error>> {
     let resp = client.get(url).send().await?.text().await?;
     let document = Html::parse_document(&resp);
 
@@ -113,6 +144,36 @@ async fn get_number_of_pages(
     }
     let number_of_pages = pages[pages.len() - 2].parse().unwrap();
     return Ok(number_of_pages);
+}
+
+fn count_number_of_pages_to_parse(db: &DB, client: &Client) -> i64 {
+    let last_update;
+    match db.last_update_date(&String::from("artbook")) {
+        Ok(date) => last_update = date,
+        Err(e) => panic!("Ошибка в запросе к БД: {}", e),
+    }
+
+    let current_date = UTC::now().naive_utc();
+    let last_update_date = NaiveDate::parse_from_str(&last_update, "%Y-%m-%d")
+        .unwrap()
+        .and_hms(0, 0, 0);
+    let days_passed_count = (current_date - last_update_date).num_days();
+
+    let number_of_pages;
+    let url =
+        String::from("https://www.avito.ru/all/knigi_i_zhurnaly/knigi-ASgBAgICAUTOAuoK?cd=1&q=%D0%B0%D1%80%D1%82%D0%B1%D1%83%D0%BA");
+    match get_number_of_pages(&url, &client) {
+        Ok(number) => number_of_pages = number,
+        Err(e) => panic!("Ошибка с запросом: {}", e),
+    }
+
+    if days_passed_count > 1 && days_passed_count < number_of_pages {
+        return days_passed_count;
+    } else if days_passed_count == 0 {
+        return 1;
+    } else {
+        return number_of_pages;
+    }
 }
 
 fn ratio_lots_with_books(lots: &mut Vec<Lot>, books: &mut Vec<Book>) {
