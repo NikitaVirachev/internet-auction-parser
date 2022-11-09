@@ -2,6 +2,7 @@
 use rusqlite::Connection;
 
 use crate::Book;
+use crate::Lot;
 
 pub struct DB {
     pub connection: Connection,
@@ -49,5 +50,14 @@ impl DB {
             date = row.get(0).expect("get row failed");
         }
         Ok(date)
+    }
+    pub fn update_lots(&self, lots: &Vec<Lot>) -> Result<(), Box<dyn std::error::Error>> {
+        for lot in lots {
+            self.connection.execute(
+                "INSERT OR REPLACE INTO Lots (Id, Title, URL) VALUES (:id, :title, :url)",
+                &[(":id", &lot.id), (":title", &lot.title), (":url", &lot.url)],
+            )?;
+        }
+        Ok(())
     }
 }

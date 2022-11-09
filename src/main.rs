@@ -38,9 +38,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &client,
         &mut storage,
     );
-    // for lot in &storage.lots {
-    //     println!("{:?}", lot)
-    // }
+    for lot in &storage.lots {
+        println!("{:?}", lot)
+    }
+
+    match db.update_lots(&storage.lots) {
+        Ok(_) => (),
+        Err(e) => panic!("Ошибка с добавлением лотов в БД: {}", e),
+    }
+    println!("Всего лотов: {}", storage.lots.len());
 
     match db.set_current_date(&String::from("artbook")) {
         Ok(_) => (),
