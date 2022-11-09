@@ -2,6 +2,7 @@
 pub struct Lot {
     pub id: String,
     pub title: String,
+    pub price: String,
     pub url: String,
     pub count: i32,
 }

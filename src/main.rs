@@ -117,10 +117,20 @@ async fn page_parsing(
             .unwrap()
             .attr("data-item-id")
             .unwrap();
+        let selector_price = Selector::parse("span.price-price-JP7qe meta:nth-child(2)").unwrap();
+        let price = element
+            .select(&selector_price)
+            .next()
+            .unwrap()
+            .value()
+            .attr("content")
+            .unwrap();
+
         lots.push(Lot {
             id: id.to_string(),
-            title: title,
-            url: url,
+            title,
+            price: price.to_string(),
+            url,
             count: 0,
         });
     }

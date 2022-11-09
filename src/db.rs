@@ -54,8 +54,8 @@ impl DB {
     pub fn update_lots(&self, lots: &Vec<Lot>) -> Result<(), Box<dyn std::error::Error>> {
         for lot in lots {
             self.connection.execute(
-                "INSERT OR REPLACE INTO Lots (Id, Title, URL) VALUES (:id, :title, :url)",
-                &[(":id", &lot.id), (":title", &lot.title), (":url", &lot.url)],
+                "INSERT OR REPLACE INTO Lots (Id, Title, Price, URL) VALUES (:id, :title, :price, :url)",
+                &[(":id", &lot.id), (":title", &lot.title), (":price", &lot.price), (":url", &lot.url)],
             )?;
         }
         Ok(())
