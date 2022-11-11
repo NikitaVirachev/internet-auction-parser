@@ -42,11 +42,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //     println!("{:?}", lot)
     // }
 
-    match db.update_lots(&storage.lots) {
-        Ok(_) => (),
-        Err(e) => panic!("Ошибка с добавлением лотов в БД: {}", e),
-    }
-
     match db.set_current_date(&String::from("artbook")) {
         Ok(_) => (),
         Err(e) => panic!("Ошибка в запросе к БД: {}", e),
@@ -62,6 +57,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // for book in storage.books {
     //     println!("{:?}", book)
     // }
+
+    match db.update_lots(&storage.lots) {
+        Ok(_) => (),
+        Err(e) => panic!("Ошибка с добавлением лотов в БД: {}", e),
+    }
 
     Ok(())
 }
@@ -131,6 +131,7 @@ async fn page_parsing(
             title,
             price: price.to_string(),
             url,
+            isbn: "".to_string(),
             count: 0,
         });
     }
@@ -222,9 +223,9 @@ fn ratio_lots_with_books(lots: &mut Vec<Lot>, books: &mut Vec<Book>) {
         // }
 
         if mean != 0.0 {
-            lots.iter()
+            lots.iter_mut()
                 .filter(|lot| lot.count as f32 >= mean)
-                .for_each(|_| book.count += 1);
+                .for_each(|lot| lot.isbn = book.isbn.clone());
         }
 
         lots.iter_mut().for_each(|lot| lot.count = 0);

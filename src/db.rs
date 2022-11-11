@@ -53,10 +53,17 @@ impl DB {
     }
     pub fn update_lots(&self, lots: &Vec<Lot>) -> Result<(), Box<dyn std::error::Error>> {
         for lot in lots {
-            self.connection.execute(
-                "INSERT OR REPLACE INTO Lots (Id, Title, Price, URL) VALUES (:id, :title, :price, :url)",
-                &[(":id", &lot.id), (":title", &lot.title), (":price", &lot.price), (":url", &lot.url)],
-            )?;
+            if lot.isbn.is_empty() {
+                self.connection.execute(
+                    "INSERT OR REPLACE INTO Lots (Id, Title, Price, URL, ISBN) VALUES (:id, :title, :price, :url, NULL)",
+                    &[(":id", &lot.id), (":title", &lot.title), (":price", &lot.price), (":url", &lot.url)],
+                )?;
+            } else {
+                self.connection.execute(
+                    "INSERT OR REPLACE INTO Lots (Id, Title, Price, URL, ISBN) VALUES (:id, :title, :price, :url, :isbn)",
+                    &[(":id", &lot.id), (":title", &lot.title), (":price", &lot.price), (":url", &lot.url), (":isbn", &lot.isbn)],
+                )?;
+            }
         }
         Ok(())
     }
