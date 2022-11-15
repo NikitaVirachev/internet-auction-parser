@@ -4,6 +4,7 @@ pub struct Lot {
     pub title: String,
     pub price: String,
     pub url: String,
+    pub preview: Vec<u8>,
     pub isbn: String,
     pub count: i32,
 }

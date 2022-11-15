@@ -55,13 +55,13 @@ impl DB {
         for lot in lots {
             if lot.isbn.is_empty() {
                 self.connection.execute(
-                    "INSERT OR REPLACE INTO Lots (Id, Title, Price, URL, ISBN) VALUES (:id, :title, :price, :url, NULL)",
-                    &[(":id", &lot.id), (":title", &lot.title), (":price", &lot.price), (":url", &lot.url)],
+                    "INSERT OR REPLACE INTO Lots (Id, Title, Price, URL, Preview, ISBN) VALUES (:id, :title, :price, :url, :preview, NULL)",
+                    &[(":id", &lot.id), (":title", &lot.title), (":price", &lot.price), (":url", &lot.url), (":preview", &String::from_utf8_lossy(&lot.preview).into_owned())],
                 )?;
             } else {
                 self.connection.execute(
-                    "INSERT OR REPLACE INTO Lots (Id, Title, Price, URL, ISBN) VALUES (:id, :title, :price, :url, :isbn)",
-                    &[(":id", &lot.id), (":title", &lot.title), (":price", &lot.price), (":url", &lot.url), (":isbn", &lot.isbn)],
+                    "INSERT OR REPLACE INTO Lots (Id, Title, Price, URL, Preview, ISBN) VALUES (:id, :title, :price, :url, :preview, :isbn)",
+                    &[(":id", &lot.id), (":title", &lot.title), (":price", &lot.price), (":url", &lot.url), (":preview", &String::from_utf8_lossy(&lot.preview).into_owned()), (":isbn", &lot.isbn)],
                 )?;
             }
         }

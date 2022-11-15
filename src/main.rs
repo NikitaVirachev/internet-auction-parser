@@ -125,23 +125,30 @@ async fn page_parsing(
             .value()
             .attr("content")
             .unwrap();
+        let selector_img = Selector::parse("li").unwrap();
+        let data_marker = element
+            .select(&selector_img)
+            .next()
+            .expect(&element.html())
+            .value()
+            .attr("data-marker")
+            .unwrap();
+        let first_i = data_marker.find("image-").unwrap() + 6;
+        let img_url = &data_marker[first_i..];
+        let img = client.get(img_url).send().await?.bytes().await?;
+        let image =
+            image::load_from_memory_with_format(&img.to_vec(), image::ImageFormat::Jpeg).unwrap();
 
         lots.push(Lot {
             id: id.to_string(),
             title,
             price: price.to_string(),
             url,
+            preview: image.as_bytes().to_vec(),
             isbn: "".to_string(),
             count: 0,
         });
     }
-    // let selector_title = Selector::parse("div.iva-item-titleStep-pdebR h3").unwrap();
-    // for element in document.select(&selector_title) {
-    //     lots.push(Lot {
-    //         title: element.inner_html(),
-    //         count: 0,
-    //     });
-    // }
     return Ok(lots);
 }
 
