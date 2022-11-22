@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="MyGtkAppWindow" parent="GtkApplicationWindow">
+    <property name="title">Сервер</property>
+    <style>
+      <class name="wrapper"/>
+    </style>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">horizontal</property>
+        <style>
+          <class name="layout"/>
+        </style>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">6</property>
+            <style>
+              <class name="menu"/>
+            </style>
+            <child>
+              <object class="GtkLabel" id="date_label">
+                <property name="label">Дата</property>
+                <property name="hexpand">false</property>
+                <property name="halign">GTK_ALIGN_CENTER</property>
+                <style>
+                  <class name="menu__date"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="update_btn">
+                <property name="label">Обновить</property>
+                <property name="action-name">win.date</property>
+                <property name="hexpand">false</property>
+                <property name="halign">GTK_ALIGN_CENTER</property>
+                <style>
+                  <class name="menu__btn"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSpinner" id="spinner">
+                <style>
+                  <class name="menu__spinner"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+          <property name="orientation">vertical</property>
+          <property name="spacing">10</property>
+          <style>
+            <class name="log-area"/>
+          </style>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Логи</property>
+                <property name="halign">GTK_ALIGN_START</property>
+                <style>
+                  <class name="log-area__title"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow">
+                <child>
+                  <object class="GtkTextView" id="logs">
+                    <property name="hexpand">true</property>
+                    <property name="vexpand">true</property>
+                    <style>
+                      <class name="log-area__logs"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

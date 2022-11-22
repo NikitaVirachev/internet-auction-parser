@@ -1,0 +1,54 @@
+.wrapper {
+  min-width: 1000px;
+  min-height: 800px;
+}
+
+.layout {
+  background-color: #e9ecef;
+}
+
+.menu {
+  min-width: 200px;
+  padding-top: 10px;
+}
+
+.menu__date {
+  background-color: #f8f9fa;
+  color: #212529;
+  font-size: 16px;
+  min-height: 30px;
+  min-width: 180px;
+  border-radius: 5px;
+}
+
+.menu__btn {
+  min-width: 150px;
+  background: #212529;
+  color: #f8f9fa;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.menu__btn:hover {
+  background: #495057;
+}
+
+.menu__spinner {
+  min-height: 30px;
+  min-width: 30px;
+}
+
+.log-area {
+  background-color: #fff;
+  padding: 10px;
+}
+
+.log-area__title {
+  font-family: sans-serif;
+  font-size: 20px;
+}
+
+.log-area__logs {
+  color: #212529;
+  font-size: 16px;
+}
